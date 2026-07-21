@@ -1,0 +1,6 @@
+@NexoVida_HostAddress = http://localhost:5005
+
+GET {{NexoVida_HostAddress}}/api/usuario/
+Accept: application/json
+
+###

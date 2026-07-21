@@ -1,0 +1,43 @@
+# Auto detecta archivos de texto y normaliza line endings (LF en el repo)
+* text=auto eol=lf
+
+# Fuentes .NET / C#
+*.cs      text diff=csharp
+*.csproj  text
+*.sln     text eol=crlf
+*.config  text
+*.json    text
+*.xml     text
+
+# Fuentes Dart / Flutter
+*.dart    text
+*.yaml    text
+*.yml     text
+pubspec.lock text -diff
+
+# Scripts (siempre LF, incluso en Windows)
+*.sh      text eol=lf
+
+# Scripts batch de Windows (siempre CRLF)
+*.bat     text eol=crlf
+*.ps1     text eol=crlf
+
+# Documentación
+*.md      text
+*.txt     text
+
+# Binarios (no tocar, no diff)
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.ico     binary
+*.pdf     binary
+*.dll     binary
+*.exe     binary
+*.so      binary
+*.jar     binary
+*.keystore binary
+*.jks     binary
+*.ttf     binary
+*.otf     binary
