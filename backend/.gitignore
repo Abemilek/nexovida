@@ -482,3 +482,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+## --- Específico NexoVida ---
+# Salidas de 'dotnet publish' / 'dotnet run' fuera de bin y obj
+[Oo]ut/
