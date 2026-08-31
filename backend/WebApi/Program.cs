@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.OpenApi.Models;
 using WebApi.Interface;
-//using WebApi.Implementation;
+using WebApi.Implementation;
 using WebApi.Middleware;
 using WebApi.Filters;
 using System.Net;
@@ -163,20 +163,20 @@ builder.Services.AddSwaggerGen(c =>
 // builder.Services.AddScoped<IAlertaService, AlertaService>();
 // builder.Services.AddScoped<IHistorialPacienteService, HistorialPacienteService>();
 
-// builder.Services.AddScoped<IMetricaService, MetricaService>();
-// builder.Services.AddScoped<IRolService, RolService>();
-// builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-// builder.Services.AddScoped<IUsuarioRolService, UsuarioRolService>();
-// builder.Services.AddScoped<IPerfilService, PerfilService>();
-// builder.Services.AddScoped<IPacienteService, PacienteService>();
-// builder.Services.AddScoped<IProfesionalSaludService, ProfesionalSaludService>();
-// builder.Services.AddScoped<IFamiliarService, FamiliarService>();
-// builder.Services.AddScoped<IAsistentePacienteService, AsistentePacienteService>();
+builder.Services.AddScoped<IMetricaService, MetricaService>();
+builder.Services.AddScoped<IRolService, RolService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IUsuarioRolService, UsuarioRolService>();
+builder.Services.AddScoped<IPerfilService, PerfilService>();
+builder.Services.AddScoped<IPacienteService, PacienteService>();
+builder.Services.AddScoped<IProfesionalSaludService, ProfesionalSaludService>();
+builder.Services.AddScoped<IFamiliarService, FamiliarService>();
+builder.Services.AddScoped<IAsistentePacienteService, AsistentePacienteService>();
 // builder.Services.AddScoped<IEnfermedadService, EnfermedadService>();
 // builder.Services.AddScoped<IPacienteEnfermedadService, PacienteEnfermedadService>();
 
-// builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
-// builder.Services.AddScoped<ITotpService, TotpService>();
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+builder.Services.AddScoped<ITotpService, TotpService>();
 
 builder.Services.AddHsts(options =>
 {
