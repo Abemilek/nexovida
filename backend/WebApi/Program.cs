@@ -155,13 +155,13 @@ builder.Services.AddSwaggerGen(c =>
 // builder.Services.AddScoped<IMedicamentoService, MedicamentoService>();
 // builder.Services.AddScoped<ITratamientoService, TratamientoService>();
 // builder.Services.AddScoped<ITratamientoMedicamentoService, TratamientoMedicamentoService>();
-// builder.Services.AddScoped<ICitaService, CitaService>();
-// builder.Services.AddScoped<IAsignarCitaService, AsignarCitaService>();
-// builder.Services.AddScoped<IRecordatorioService, RecordatorioService>();
-// builder.Services.AddScoped<ITipoIndicadorSaludService, TipoIndicadorSaludService>();
-// builder.Services.AddScoped<IIndicadorSaludService, IndicadorSaludService>();
-// builder.Services.AddScoped<IAlertaService, AlertaService>();
-// builder.Services.AddScoped<IHistorialPacienteService, HistorialPacienteService>();
+ builder.Services.AddScoped<ICitaService, CitaService>();
+builder.Services.AddScoped<IAsignarCitaService, AsignarCitaService>();
+ builder.Services.AddScoped<IRecordatorioService, RecordatorioService>();
+ builder.Services.AddScoped<ITipoIndicadorSaludService, TipoIndicadorSaludService>();
+ builder.Services.AddScoped<IIndicadorSaludService, IndicadorSaludService>();
+ builder.Services.AddScoped<IAlertaService, AlertaService>();
+ builder.Services.AddScoped<IHistorialPacienteService, HistorialPacienteService>();
 
 builder.Services.AddScoped<IMetricaService, MetricaService>();
 builder.Services.AddScoped<IRolService, RolService>();
