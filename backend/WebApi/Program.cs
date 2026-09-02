@@ -152,9 +152,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// builder.Services.AddScoped<IMedicamentoService, MedicamentoService>();
-// builder.Services.AddScoped<ITratamientoService, TratamientoService>();
-// builder.Services.AddScoped<ITratamientoMedicamentoService, TratamientoMedicamentoService>();
+builder.Services.AddScoped<IMedicamentoService, MedicamentoService>();
+builder.Services.AddScoped<ITratamientoService, TratamientoService>();
+builder.Services.AddScoped<ITratamientoMedicamentoService, TratamientoMedicamentoService>();
  builder.Services.AddScoped<ICitaService, CitaService>();
 builder.Services.AddScoped<IAsignarCitaService, AsignarCitaService>();
  builder.Services.AddScoped<IRecordatorioService, RecordatorioService>();
@@ -172,8 +172,8 @@ builder.Services.AddScoped<IPacienteService, PacienteService>();
 builder.Services.AddScoped<IProfesionalSaludService, ProfesionalSaludService>();
 builder.Services.AddScoped<IFamiliarService, FamiliarService>();
 builder.Services.AddScoped<IAsistentePacienteService, AsistentePacienteService>();
-// builder.Services.AddScoped<IEnfermedadService, EnfermedadService>();
-// builder.Services.AddScoped<IPacienteEnfermedadService, PacienteEnfermedadService>();
+builder.Services.AddScoped<IEnfermedadService, EnfermedadService>();
+builder.Services.AddScoped<IPacienteEnfermedadService, PacienteEnfermedadService>();
 
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<ITotpService, TotpService>();
