@@ -8,6 +8,7 @@ Guía de ejecución y despliegue del ecosistema NexoVida (backend ASP.NET Core 8
 
 - [Modelo de despliegue](#modelo-de-despliegue)
 - [Configuración de entorno](#configuración-de-entorno)
+- [Docker vs. local — diferencias clave](#docker-vs-local--diferencias-clave)
 - [Despliegue con Docker Compose](#despliegue-con-docker-compose-recomendado)
 - [Despliegue sin Docker](#despliegue-sin-docker-backends-nativos)
 - [Checklist de seguridad en producción](#checklist-de-seguridad-en-producción)
@@ -51,6 +52,21 @@ Todas las variables se sobrescriben sobre `appsettings.json` con la notación de
 | `ASPNETCORE_ENVIRONMENT` | `Development` (por defecto) / `Production` | Habilita/deshabilita Swagger, detalle de errores, HSTS/HTTPS | Sí |
 
 El template versionable es [`backend/.env.example`](../backend/.env.example). Copia, edita y **no subas** el `.env` real.
+
+## Docker vs. local — diferencias clave
+
+Las dos vías de ejecución no son intercambiables 1:1: cambian el puerto, si el seed corre solo o hay que correrlo a mano, y el entorno por defecto. Referencia rápida antes de elegir una:
+
+| | Docker Compose | Local (`dotnet run`) |
+|---|---|---|
+| Puerto de la API | `8080` | `5005` |
+| Base de datos | Contenedor `db` (SQL Server 2022), puerto `1433` ligado solo a `127.0.0.1` | Tu propia instancia de SQL Server 2022 en `localhost:1433` |
+| Seed (`NexoVida.sql` + `NexoVida.seed.sql`) | **Automático** — lo corre el servicio `db-init` una sola vez | **Manual** — tenés que ejecutar ambos scripts vos mismo contra tu instancia |
+| `ASPNETCORE_ENVIRONMENT` por defecto | `Development` (Swagger activo) salvo que lo cambies en `backend/.env` | El que vos exportes explícitamente (el ejemplo de esta guía usa `Production`) |
+| Variables de entorno | Se leen de `backend/.env` y se re-mapean en `compose.yaml` | Se exportan a mano en tu shell (o `dotnet user-secrets`) |
+| Uso recomendado | Entrega, demo para el jurado, cualquier entorno reproducible | Desarrollo activo del backend con recarga en caliente (`dotnet watch`) |
+
+> Para la entrega académica, la vía recomendada es Docker Compose: un solo comando (`docker compose up --build`) deja la API, la base de datos y el seed listos sin pasos manuales adicionales.
 
 ## Despliegue con Docker Compose (recomendado)
 
@@ -134,7 +150,7 @@ flutter analyze && flutter test
 flutter build apk --release
 # → build/app/outputs/flutter-apk/app-release.apk
 
-# Escritorio linux (runner)
+# Escritorio linux o windows (runner)
 flutter build linux
 ```
 
