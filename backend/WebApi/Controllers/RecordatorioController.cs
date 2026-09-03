@@ -18,9 +18,6 @@ namespace WebApi.Controllers
             _service = service ?? throw new ArgumentNullException(nameof(service));
         }
 
-        // SECURITY (OWASP API1:2023): cada rol ve solo sus recordatorios -
-        // Paciente los propios, ProfesionalSalud los de sus asignados, Familiar los
-        // de quienes cuida. El Administrador no consume datos clinicos.
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
