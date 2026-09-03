@@ -188,6 +188,9 @@ Todas las cuentas del seed comparten la contraseña `nexovida-project`:
 - [**Contributing** — `CONTRIBUTING.md`](CONTRIBUTING.md): convenciones de ramas, commits y guías del proyecto.
 - [**Scripts de BD** — `backend/Scripts/`](backend/Scripts/): esquema (`NexoVida.sql`) y datos de ejemplo (`NexoVida.seed.sql`).
 
+## Licencia
+
+Este proyecto está bajo la licencia MIT — ver el archivo [LICENSE](LICENSE) para más detalles.
 ## Agradecimientos
 
 Las decisiones de seguridad de la API (autenticación, rate limiting, manejo de errores y fallback policy) se diseñaron siguiendo las recomendaciones del **[OWASP API Security Project](https://owasp.org/www-project-api-security/)**. Agradecemos a la comunidad OWASP por mantener de forma abierta y gratuita una de las referencias más completas para el diseño seguro de APIs.
