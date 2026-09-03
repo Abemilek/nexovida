@@ -1,6 +1,10 @@
 USE master;
 GO
 
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE DATABASE NexoVida;
 GO
 
@@ -24,6 +28,8 @@ CREATE TABLE Usuario(
     UltimoAcceso DATETIME,
     Activo BIT
 );
+
+CREATE UNIQUE INDEX UQ_Usuario_Correo ON Usuario(Correo) WHERE Correo IS NOT NULL;
 
 CREATE TABLE UsuarioRol(
     IdUsuarioRol INT PRIMARY KEY IDENTITY(1,1),
@@ -249,3 +255,187 @@ CREATE TABLE HistorialPaciente(
     FOREIGN KEY (IdPaciente) REFERENCES Paciente(IdPaciente),
     FOREIGN KEY (IdUsuario) REFERENCES Usuario(IdUsuario)
 );
+
+CREATE TABLE UsuarioSeguridad (
+    IdUsuario INT PRIMARY KEY,
+    TwoFactorEnabled BIT DEFAULT 0,
+    TwoFactorSecret VARCHAR(255),
+    FOREIGN KEY (IdUsuario) REFERENCES Usuario(IdUsuario)
+);
+
+CREATE TABLE RefreshTokens (
+    IdRefreshToken INT IDENTITY(1,1) PRIMARY KEY,
+    IdUsuario INT NOT NULL,
+    TokenHash VARBINARY(32) NOT NULL,
+    FechaCreacion DATETIME NOT NULL DEFAULT GETUTCDATE(),
+    FechaExpiracion DATETIME NOT NULL,
+    Revocado BIT NOT NULL DEFAULT 0,
+    FOREIGN KEY (IdUsuario) REFERENCES Usuario(IdUsuario)
+);
+GO
+
+CREATE PROCEDURE sp_Usuario_ObtenerTodos
+AS
+BEGIN
+    SELECT u.IdUsuario, u.NombreUsuario, u.Correo, u.Contrasena, u.Salt, u.FechaRegistro, u.UltimoAcceso, u.Activo, ISNULL(s.TwoFactorEnabled, 0) AS TwoFactorEnabled, s.TwoFactorSecret
+    FROM Usuario u
+    LEFT JOIN UsuarioSeguridad s ON u.IdUsuario = s.IdUsuario;
+END;
+GO
+
+CREATE PROCEDURE sp_Usuario_ObtenerPorId
+    @IdUsuario INT
+AS
+BEGIN
+    SELECT u.IdUsuario, u.NombreUsuario, u.Correo, u.Contrasena, u.Salt, u.FechaRegistro, u.UltimoAcceso, u.Activo, ISNULL(s.TwoFactorEnabled, 0) AS TwoFactorEnabled, s.TwoFactorSecret
+    FROM Usuario u
+    LEFT JOIN UsuarioSeguridad s ON u.IdUsuario = s.IdUsuario
+    WHERE u.IdUsuario = @IdUsuario;
+END;
+GO
+
+CREATE PROCEDURE sp_Usuario_ObtenerPorCorreo
+    @Correo NVARCHAR(200)
+AS
+BEGIN
+    SELECT u.IdUsuario, u.NombreUsuario, u.Correo, u.Contrasena, u.Salt, u.FechaRegistro, u.UltimoAcceso, u.Activo, ISNULL(s.TwoFactorEnabled, 0) AS TwoFactorEnabled, s.TwoFactorSecret
+    FROM Usuario u
+    LEFT JOIN UsuarioSeguridad s ON u.IdUsuario = s.IdUsuario
+    WHERE u.Correo = @Correo;
+END;
+GO
+
+CREATE PROCEDURE sp_Usuario_Crear
+    @NombreUsuario NVARCHAR(100),
+    @Correo NVARCHAR(200),
+    @Contrasena VARBINARY(512),
+    @Salt VARBINARY(32),
+    @FechaRegistro DATETIME,
+    @UltimoAcceso DATETIME,
+    @Activo BIT
+AS
+BEGIN
+    INSERT INTO Usuario (NombreUsuario, Correo, Contrasena, Salt, FechaRegistro, UltimoAcceso, Activo)
+    VALUES (@NombreUsuario, @Correo, @Contrasena, @Salt, @FechaRegistro, @UltimoAcceso, @Activo);
+    
+    SELECT SCOPE_IDENTITY();
+END;
+GO
+
+CREATE PROCEDURE sp_Usuario_ObtenerCredenciales
+    @IdUsuario INT
+AS
+BEGIN
+    SELECT Contrasena, Salt FROM Usuario WHERE IdUsuario = @IdUsuario;
+END;
+GO
+
+CREATE PROCEDURE sp_Usuario_Actualizar
+    @IdUsuario INT,
+    @NombreUsuario NVARCHAR(100),
+    @Correo NVARCHAR(200),
+    @Contrasena VARBINARY(512),
+    @Salt VARBINARY(32),
+    @FechaRegistro DATETIME,
+    @UltimoAcceso DATETIME,
+    @Activo BIT
+AS
+BEGIN
+    UPDATE Usuario
+    SET NombreUsuario = @NombreUsuario,
+        Correo = @Correo,
+        Contrasena = @Contrasena,
+        Salt = @Salt,
+        FechaRegistro = @FechaRegistro,
+        UltimoAcceso = @UltimoAcceso,
+        Activo = @Activo
+    WHERE IdUsuario = @IdUsuario;
+    
+    SELECT @@ROWCOUNT;
+END;
+GO
+
+CREATE PROCEDURE sp_UsuarioSeguridad_Establecer
+    @IdUsuario INT,
+    @TwoFactorEnabled BIT,
+    @TwoFactorSecret VARCHAR(255)
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM UsuarioSeguridad WHERE IdUsuario = @IdUsuario)
+    BEGIN
+        UPDATE UsuarioSeguridad 
+        SET TwoFactorEnabled = @TwoFactorEnabled, TwoFactorSecret = @TwoFactorSecret
+        WHERE IdUsuario = @IdUsuario;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO UsuarioSeguridad (IdUsuario, TwoFactorEnabled, TwoFactorSecret)
+        VALUES (@IdUsuario, @TwoFactorEnabled, @TwoFactorSecret);
+    END
+END;
+GO
+
+CREATE PROCEDURE sp_Usuario_ActualizarUltimoAcceso
+    @IdUsuario INT
+AS
+BEGIN
+    UPDATE Usuario SET UltimoAcceso = GETUTCDATE() WHERE IdUsuario = @IdUsuario;
+END;
+GO
+
+CREATE PROCEDURE sp_Usuario_Desactivar
+    @IdUsuario INT
+AS
+BEGIN
+    UPDATE Usuario SET Activo = 0 WHERE IdUsuario = @IdUsuario;
+    SELECT @@ROWCOUNT;
+END;
+GO
+
+CREATE PROCEDURE sp_UsuarioRol_ObtenerRolesDeUsuario
+    @IdUsuario INT
+AS
+BEGIN
+    SELECT r.NombreRol 
+    FROM Roles r 
+    INNER JOIN UsuarioRol ur ON r.IdRol = ur.IdRol 
+    WHERE ur.IdUsuario = @IdUsuario AND ur.Activo = 1 AND r.Activo = 1;
+END;
+GO
+
+CREATE PROCEDURE sp_RefreshToken_Crear
+    @IdUsuario INT,
+    @TokenHash VARBINARY(32),
+    @FechaExpiracion DATETIME
+AS
+BEGIN
+    INSERT INTO RefreshTokens (IdUsuario, TokenHash, FechaCreacion, FechaExpiracion, Revocado)
+    VALUES (@IdUsuario, @TokenHash, GETUTCDATE(), @FechaExpiracion, 0);
+END;
+GO
+
+CREATE PROCEDURE sp_RefreshToken_Validar
+    @TokenHash VARBINARY(32)
+AS
+BEGIN
+    SELECT IdUsuario 
+    FROM RefreshTokens 
+    WHERE TokenHash = @TokenHash AND Revocado = 0 AND FechaExpiracion > GETUTCDATE();
+END;
+GO
+
+CREATE PROCEDURE sp_RefreshToken_Revocar
+    @TokenHash VARBINARY(32)
+AS
+BEGIN
+    UPDATE RefreshTokens SET Revocado = 1 WHERE TokenHash = @TokenHash;
+END;
+GO
+
+CREATE PROCEDURE sp_RefreshToken_RevocarTodosDeUsuario
+    @IdUsuario INT
+AS
+BEGIN
+    UPDATE RefreshTokens SET Revocado = 1 WHERE IdUsuario = @IdUsuario;
+END;
+GO
