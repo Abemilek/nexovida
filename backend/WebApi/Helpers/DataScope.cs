@@ -47,30 +47,30 @@ namespace WebApi.Helpers
 
             if (context.User.IsInRole("ProfesionalSalud"))
             {
-                // var profesionalService = services.GetRequiredService<IProfesionalSaludService>();
-                // var tratamientoService = services.GetRequiredService<ITratamientoService>();
+                 var profesionalService = services.GetRequiredService<IProfesionalSaludService>();
+                 var tratamientoService = services.GetRequiredService<ITratamientoService>();
 
-                // int? idProfesional = null;
-                // foreach (var p in await profesionalService.GetAllAsync())
-                // {
-                //     if (p.IdUsuario == idUsuario && p.Activo != false)
-                //     {
-                //         idProfesional = p.IdProfesional;
-                //         break;
-                //     }
-                // }
-                // if (idProfesional == null)
-                // {
-                //     return permitidos;
-                // }
+                 int? idProfesional = null;
+                 foreach (var p in await profesionalService.GetAllAsync())
+                 {
+                     if (p.IdUsuario == idUsuario && p.Activo != false)
+                     {
+                         idProfesional = p.IdProfesional;
+                         break;
+                     }
+                 }
+                 if (idProfesional == null)
+                 {
+                     return permitidos;
+                 }
 
-                // foreach (var t in await tratamientoService.GetAllAsync())
-                // {
-                //     if (t.IdProfesional == idProfesional.Value)
-                //     {
-                //         permitidos.Add(t.IdPaciente);
-                //     }
-                // }
+                 foreach (var t in await tratamientoService.GetAllAsync())
+                 {
+                     if (t.IdProfesional == idProfesional.Value)
+                     {
+                         permitidos.Add(t.IdPaciente);
+                     }
+                 }
                  return permitidos;
             }
 
