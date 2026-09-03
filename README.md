@@ -30,6 +30,7 @@ Solución digital que mantiene el control del tratamiento y la monitorización d
 - [Seguridad](#seguridad)
 - [CI/CD](#cicd)
 - [Documentación](#documentación)
+- [Licencia](#licencia)
 - [Agradecimientos](#agradecimientos)
 
 ---
@@ -51,15 +52,15 @@ Solución digital que mantiene el control del tratamiento y la monitorización d
 
 ```mermaid
 flowchart TD
-    M["Mobile App (Flutter)<br/>auth_screen · home_shell"] -->|HTTPS / JWT| A
+    M["Mobile App (Flutter)<br/>auth_screen · home_shell"] -->|HTTPS / JWT| API
 
-    subgraph A["WebApi (ASP.NET Core 8)"]
+    subgraph API["WebApi (ASP.NET Core 8)"]
         direction TB
         A1["AuthController · módulos REST"]
         A2["Rate limiting · JWT + 2FA"]
     end
 
-    A --> D[("SQL Server 2022<br/>NexoVida + tablas")]
+    API --> D[("SQL Server 2022<br/>NexoVida + tablas")]
 ```
 
 El backend se organiza en **capas con dependencias unidireccionales** (ver [`backend/README.md`](backend/README.md)):
@@ -191,6 +192,7 @@ Todas las cuentas del seed comparten la contraseña `nexovida-project`:
 ## Licencia
 
 Este proyecto está bajo la licencia MIT — ver el archivo [LICENSE](LICENSE) para más detalles.
+
 ## Agradecimientos
 
 Las decisiones de seguridad de la API (autenticación, rate limiting, manejo de errores y fallback policy) se diseñaron siguiendo las recomendaciones del **[OWASP API Security Project](https://owasp.org/www-project-api-security/)**. Agradecemos a la comunidad OWASP por mantener de forma abierta y gratuita una de las referencias más completas para el diseño seguro de APIs.
@@ -199,5 +201,5 @@ Las decisiones de seguridad de la API (autenticación, rate limiting, manejo de 
 
 <div align="center">
   Hecho con dedicación para los que cuidan y los que necesitan cuidado.<br/>
-  <sub>NexoVida · monorepo ASP.NET Core 8 + Flutter</sub>
+  <sub>NexoVida · ASP.NET Core 8 + Flutter</sub>
 </div>
