@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+
 import '../app_session.dart';
 import 'app_theme.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key, required this.session});
+
   final AppSession session;
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
+class _AuthScreenState extends State<AuthScreen>
+    with TickerProviderStateMixin {
   late final TabController _tabController;
   late final AnimationController _introController;
   late final Animation<double> _introFade;
@@ -32,6 +35,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_onTabChanged);
     widget.session.addListener(_onSessionChanged);
+
     _introController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 420),
@@ -76,46 +80,46 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     return Theme(
       data: AppTheme.light(),
       child: Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.white, AppTheme.surfaceTint],
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.white, AppTheme.surfaceTint],
           ),
-          child: SafeArea(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1080),
-                child: Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: FadeTransition(
-                    opacity: _introFade,
-                    child: SlideTransition(
-                      position: _introSlide,
-                      child: wide
-                          ? Row(
-                              children: [
-                                const Expanded(child: _BrandPanel()),
-                                const SizedBox(width: 28),
-                                SizedBox(width: 420, child: _authCard()),
-                              ],
-                            )
-                          : ListView(
-                              children: [
-                                const _BrandPanel(compact: true),
-                                const SizedBox(height: 18),
-                                _authCard(),
-                              ],
-                            ),
-                    ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1080),
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: FadeTransition(
+                  opacity: _introFade,
+                  child: SlideTransition(
+                    position: _introSlide,
+                    child: wide
+                        ? Row(
+                            children: [
+                              const Expanded(child: _BrandPanel()),
+                              const SizedBox(width: 28),
+                              SizedBox(width: 420, child: _authCard()),
+                            ],
+                          )
+                        : ListView(
+                            children: [
+                              const _BrandPanel(compact: true),
+                              const SizedBox(height: 18),
+                              _authCard(),
+                            ],
+                          ),
                   ),
                 ),
               ),
             ),
           ),
         ),
+      ),
       ),
     );
   }
