@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../app_session.dart';
 import 'app_theme.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key, required this.session});
+
   final AppSession session;
 
   @override
@@ -32,6 +34,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_onTabChanged);
     widget.session.addListener(_onSessionChanged);
+
     _introController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 420),
