@@ -25,7 +25,6 @@ class DialogForm extends StatelessWidget {
   }
 }
 
-
 class DateTile extends StatelessWidget {
   const DateTile({super.key, required this.date, required this.onPick});
 
@@ -472,7 +471,6 @@ Future<void> showClinicalEventDialog(
   title.dispose();
   description.dispose();
 }
-
 
 String? _numberRequired(String? value) {
   final parsed = double.tryParse((value ?? '').replaceAll(',', '.'));

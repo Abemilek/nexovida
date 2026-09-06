@@ -29,4 +29,3 @@ class AlertsPage extends StatelessWidget {
     );
   }
 }
-

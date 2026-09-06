@@ -46,4 +46,3 @@ class IndicatorsPage extends StatelessWidget {
     );
   }
 }
-

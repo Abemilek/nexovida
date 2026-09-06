@@ -41,4 +41,3 @@ class AppointmentsPage extends StatelessWidget {
     );
   }
 }
-

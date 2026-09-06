@@ -6,4 +6,3 @@ class Destination {
   final String label;
   final IconData icon;
 }
-

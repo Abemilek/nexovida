@@ -1,7 +1,6 @@
 import '../../../models/nexo_models.dart';
 import '../../../services/nexo_repository.dart';
 
-
 List<Reminder> remindersFor(NexoRepository repository, AppUser user) {
   final items = repository.reminders
       .where(

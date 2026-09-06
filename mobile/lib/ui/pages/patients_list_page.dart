@@ -103,4 +103,3 @@ class _PatientsListPageState extends State<PatientsListPage> {
     );
   }
 }
-

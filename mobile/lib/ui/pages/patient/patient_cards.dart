@@ -43,7 +43,6 @@ Widget reminderCard(
   );
 }
 
-
 Widget indicatorCard(HealthIndicator indicator) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 10),
@@ -67,7 +66,6 @@ Widget indicatorCard(HealthIndicator indicator) {
   );
 }
 
-
 Widget appointmentCard(Appointment appointment) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 10),
@@ -80,20 +78,19 @@ Widget appointmentCard(Appointment appointment) {
       subtitle:
           '${formatDateTime(appointment.startsAt)} · ${appointment.modality}\n${appointment.reason}\n${appointment.place}',
       accent: AppTheme.tertiary,
-      trailing: StatusPill(
-        label: appointment.status,
-        color: AppTheme.tertiary,
-      ),
+      trailing: StatusPill(label: appointment.status, color: AppTheme.tertiary),
     ),
   );
 }
-
 
 Widget historyCard(ClinicalEvent event) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 10),
     child: InfoCard(
-      leading: const Icon(Icons.history_edu_outlined, color: AppTheme.historyAccent),
+      leading: const Icon(
+        Icons.history_edu_outlined,
+        color: AppTheme.historyAccent,
+      ),
       title: event.title,
       subtitle:
           '${event.type} · ${formatDate(event.eventAt)}\n${event.description}',
@@ -101,7 +98,6 @@ Widget historyCard(ClinicalEvent event) {
     ),
   );
 }
-
 
 Widget alertCard(CareAlert alert) {
   final color = switch (alert.priority.toLowerCase()) {
@@ -128,7 +124,6 @@ Widget alertCard(CareAlert alert) {
   );
 }
 
-
 Color indicatorColor(HealthIndicator indicator) {
   final pressureHigh =
       indicator.typeId == 1 &&
@@ -141,7 +136,6 @@ Color indicatorColor(HealthIndicator indicator) {
       ? AppTheme.secondary
       : AppTheme.primary;
 }
-
 
 class IndicatorSummary extends StatelessWidget {
   const IndicatorSummary({super.key, required this.indicators});
@@ -257,4 +251,3 @@ class TwoColumn extends StatelessWidget {
     );
   }
 }
-
