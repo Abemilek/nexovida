@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using WebApi.Interface;
 using WebApi.Models;
 using WebApi.Dto;
+using WebApi.Helpers;
 
 namespace WebApi.Controllers
 {
@@ -18,11 +20,21 @@ namespace WebApi.Controllers
         }
 
         [Authorize(Roles = "Administrador,ProfesionalSalud")]
-
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var resultado = await _service.GetAllAsync();
+            if (!DataScope.EsAdministrador(HttpContext))
+            {
+                var permitidos = await DataScope.ObtenerPacientesPermitidosAsync(HttpContext);
+                var citaService = HttpContext.RequestServices.GetRequiredService<ICitaService>();
+                var citasPermitidas = (await citaService.GetAllAsync())
+                    .Where(c => permitidos.Contains(c.IdPaciente))
+                    .Select(c => c.IdCita)
+                    .ToHashSet();
+
+                resultado = resultado.Where(r => citasPermitidas.Contains(r.IdCita)).ToList();
+            }
             if (!resultado.Any())
             {
                 return Ok(new { message = "No hay registros de AsignarCita actualmente." });
@@ -31,7 +43,6 @@ namespace WebApi.Controllers
         }
 
         [Authorize(Roles = "Administrador,ProfesionalSalud")]
-
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -39,6 +50,16 @@ namespace WebApi.Controllers
             if (resultado == null)
             {
                 return NotFound(new { message = $"No se encontro el registro con Id {id}." });
+            }
+
+            if (!DataScope.EsAdministrador(HttpContext))
+            {
+                var citaService = HttpContext.RequestServices.GetRequiredService<ICitaService>();
+                var cita = await citaService.GetByIdAsync(resultado.IdCita);
+                if (cita == null || !await BolaChecker.EsPropietario(HttpContext, cita.IdPaciente))
+                {
+                    return Forbid();
+                }
             }
             return Ok(resultado);
         }

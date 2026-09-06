@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using WebApi.Interface;
 using WebApi.Models;
 using WebApi.Dto;
+using WebApi.Helpers;
 
 namespace WebApi.Controllers
 {
@@ -18,11 +20,27 @@ namespace WebApi.Controllers
         }
 
         [Authorize(Roles = "Administrador,ProfesionalSalud")]
-
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var resultado = await _service.GetAllAsync();
+            if (!DataScope.EsAdministrador(HttpContext))
+            {
+                var permitidos = await DataScope.ObtenerPacientesPermitidosAsync(HttpContext);
+                var pacienteService = HttpContext.RequestServices.GetRequiredService<IPacienteService>();
+                var usuariosPermitidos = (await pacienteService.GetAllAsync())
+                    .Where(p => permitidos.Contains(p.IdPaciente))
+                    .Select(p => p.IdUsuario)
+                    .ToHashSet();
+
+                var idPropio = DataScope.GetUserId(HttpContext);
+                if (idPropio.HasValue)
+                {
+                    usuariosPermitidos.Add(idPropio.Value);
+                }
+
+                resultado = resultado.Where(r => usuariosPermitidos.Contains(r.IdUsuario)).ToList();
+            }
             if (!resultado.Any())
             {
                 return Ok(new { message = "No hay registros de Perfil actualmente." });
@@ -31,7 +49,6 @@ namespace WebApi.Controllers
         }
 
         [Authorize]
-
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -40,7 +57,7 @@ namespace WebApi.Controllers
             {
                 return NotFound(new { message = $"No se encontro el registro con Id {id}." });
             }
-            
+
             var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(claim, out var idAutenticado);
             if (!User.IsInRole("Administrador") && !User.IsInRole("ProfesionalSalud") && resultado.IdUsuario != idAutenticado)
