@@ -1,13 +1,9 @@
-// import 'package:device_preview/device_preview.dart';
-// import 'package:flutter/foundation.dart';
-
 import 'package:flutter/material.dart';
 import 'app_session.dart';
 import 'services/api_client.dart';
 import 'ui/app_theme.dart';
 import 'ui/auth_screen.dart';
-
-//import 'ui/home_shell.dart';
+import 'ui/home_shell.dart';
 
 void main() {
   runApp(const NexoVidaApp());
@@ -46,7 +42,9 @@ class _NexoVidaAppState extends State<NexoVidaApp> {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
-      home: AuthScreen(session: _session),
+      home: _session.isAuthenticated
+          ? HomeShell(session: _session)
+          : AuthScreen(session: _session),
     );
   }
 }
