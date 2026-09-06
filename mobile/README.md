@@ -91,7 +91,7 @@ mobile/lib/
             └── admin_config_page.dart    # Configuración
 ```
 
-`home_shell.dart` pasó de un único archivo de ~2000 líneas a un shell de navegación de ~190, con el resto repartido por dominio (paciente / admin / compartido) — cada archivo tiene una sola responsabilidad. Así quedan las dependencias entre esos archivos nuevos:
+
 
 ```mermaid
 flowchart LR
@@ -126,36 +126,23 @@ flowchart LR
 
 Asset: `assets/images/nexovida-logo.png`.
 
-> Antes había `auto_route` + `auto_route_generator` + `build_runner` declarados en `pubspec.yaml` sin usarse en ningún lado del código (la navegación siempre fue imperativa). Se quitaron: dependencias sin uso real solo suman peso al build y superficie de mantenimiento sin ningún beneficio.
-
-## Configuración de entorno (sin `.env`)
+## Configuración de entorno
 
 La URL del backend vive en **un solo lugar**, `lib/config/environment.dart`:
 
 ```dart
 class Environment {
-  static const String apiBaseUrl = local; // <- único valor que se cambia a mano
+  static const String apiBaseUrl = local; // cambiar de local a docker o cn emulador de android o las demas dependiendo de como ejecutes
 
-  static const String local = 'http://127.0.0.1:5005';               // dotnet run
-  static const String docker = 'http://localhost:8080';              // docker compose
-  static const String androidEmulatorLocal = 'http://10.0.2.2:5005';
-  static const String androidEmulatorDocker = 'http://10.0.2.2:8080';
+  static const String local = 'http://127.0.0.1:5005';               // con backend local
+  static const String docker = 'http://localhost:8080';             // backend con docker
+  static const String androidEmulatorLocal = 'http://10.0.2.2:5005';    // backend local y usas emulador de android
+  static const String androidEmulatorDocker = 'http://10.0.2.2:8080';    // backend con docker y usas emulador de android
 }
 ```
 
 Para cambiar de backend: reasignar `apiBaseUrl` a uno de los otros tres valores y hacer **hot restart** (es `const`, no se resuelve en caliente). `AppSession.login`/`register` también aceptan un `baseUrl` opcional por pantalla, para apuntar a otra red sin recompilar.
 
-**Por qué esto no es un `.env`, a propósito:** un `.env` tiene sentido en un servidor (como `backend/.env`, que el proceso lee al arrancar y se puede cambiar sin recompilar). En un cliente Flutter compilado a APK, cualquier archivo `.env` empaquetado como asset queda **dentro del binario** igual que un `const` — cambiarlo también exige recompilar, así que no gana la flexibilidad que sí tiene en el backend. Y si el `.env` llegara a tener algo sensible, quedaría en texto plano dentro del APK, tan expuesto como cualquier string del código — un `.env` no protege nada en el cliente. Por eso la config de entorno del móvil es un archivo Dart (`Environment`), no un `.env` + paquete `flutter_dotenv`.
-
-## Diseño y tema
-
-`lib/ui/app_theme.dart` centraliza la paleta y los tokens de toda la app — cualquier color nuevo se agrega ahí, no se declara suelto en una pantalla:
-
-- **Paleta**: teal (`AppTheme.primary`) como color de confianza/calma, coral (`AppTheme.secondary`) como acento de acción, salvia (`AppTheme.tertiary`) para estados saludables/éxito, y un acento aparte para eventos de historial clínico. Elegida siguiendo el patrón más usado en apps de salud/clínicas (confianza + calma sobre colores fríos institucionales).
-- **Radio de esquina único** (`AppTheme.radius = 14`) para tarjetas, campos, botones y diálogos — antes había 8/12/20 mezclados según el archivo.
-- **Tema claro y oscuro** (`AppTheme.light()` / `AppTheme.dark()`), seleccionado automáticamente por `ThemeMode.system` en `main.dart`.
-- **`AuthScreen` se fija siempre en tema claro** (`Theme(data: AppTheme.light(), ...)`) independientemente del modo del sistema: es una superficie de marca con tarjeta y logo de fondo blanco fijo, no una pantalla que deba adaptarse — fijarla evita el bug de texto blanco sobre fondo blanco que salía en modo oscuro cuando dependía del tema global.
-- Única animación de la app: un fundido + deslizamiento suave (~420ms) al entrar al login. No hay animaciones por tarjeta ni por ítem de lista — eso es lo que de verdad pesa en pantallas con muchos elementos.
 
 ## Flujo de sesión y 2FA
 
@@ -194,10 +181,10 @@ sequenceDiagram
 
 | Rol | Pestañas | Puede escribir |
 |-----|----------|----------------|
-| 👑 **Administrador** | Gestión de Usuarios · Métricas · Configuración | Usuarios del sistema (nunca datos clínicos — el backend lo bloquea explícitamente) |
-| 🩺 **Profesional** | Pacientes (a cargo) · Alertas | Recordatorios, indicadores, citas, eventos clínicos de sus pacientes asignados |
-| 👨‍👩‍👧 **Familiar** | Pacientes (bajo cuidado) · Alertas | Ninguno — solo lectura del expediente del paciente vinculado |
-| 🧍 **Paciente** | Inicio · Recordatorios · Indicadores · Citas · Historial · Alertas | Sus propios recordatorios/indicadores/citas |
+|  **Administrador** | Gestión de Usuarios · Métricas · Configuración | Usuarios del sistema (nunca datos clínicos — el backend lo bloquea explícitamente) |
+|  **Profesional** | Pacientes (a cargo) · Alertas | Recordatorios, indicadores, citas, eventos clínicos de sus pacientes asignados |
+|  **Familiar** | Pacientes (bajo cuidado) · Alertas | Ninguno — solo lectura del expediente del paciente vinculado |
+|  **Paciente** | Inicio · Recordatorios · Indicadores · Citas · Historial · Alertas | Sus propios recordatorios/indicadores/citas |
 
 `Profesional` y `Familiar` comparten las mismas dos pantallas (reutilización, no es un descuido): lo que cada uno puede *hacer* adentro sí está diferenciado — cada botón de crear/editar está condicionado a `user.role == UserRole.profesional` o `.paciente`, así que un `Familiar` navegando al mismo expediente de paciente queda en modo lectura pura.
 
@@ -250,7 +237,7 @@ flutter run -d <id-del-dispositivo>
 
 Si corrés en un **emulador/simulador Android** en vez de en tu máquina directamente, cambiá `Environment.apiBaseUrl` a `androidEmulatorLocal` o `androidEmulatorDocker` (`10.0.2.2` en vez de `127.0.0.1`/`localhost`) — ver [Configuración de entorno](#configuración-de-entorno-sin-env). Corriendo en Windows, macOS o Linux directamente (desktop) o en un dispositivo físico en la misma red, `local`/`docker` funcionan tal cual.
 
-### 🔑 Cuentas de demostración (seed)
+###  Cuentas de demostración (seed)
 
 | Cuenta (`nexovida-project`) | Rol | Qué verás |
 |----------------------|-----|-----------|

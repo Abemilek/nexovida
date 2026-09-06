@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApi.Interface;
 using WebApi.Models;
 using WebApi.Dto;
+using WebApi.Helpers;
 
 namespace WebApi.Controllers
 {
@@ -18,11 +19,15 @@ namespace WebApi.Controllers
         }
 
         [Authorize(Roles = "Administrador,ProfesionalSalud")]
-
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var resultado = await _service.GetAllAsync();
+            if (!DataScope.EsAdministrador(HttpContext))
+            {
+                var permitidos = await DataScope.ObtenerPacientesPermitidosAsync(HttpContext);
+                resultado = resultado.Where(r => permitidos.Contains(r.IdPaciente)).ToList();
+            }
             if (!resultado.Any())
             {
                 return Ok(new { message = "No hay registros de PacienteEnfermedad actualmente." });
@@ -31,7 +36,6 @@ namespace WebApi.Controllers
         }
 
         [Authorize(Roles = "Administrador,ProfesionalSalud")]
-
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -39,6 +43,10 @@ namespace WebApi.Controllers
             if (resultado == null)
             {
                 return NotFound(new { message = $"No se encontro el registro con Id {id}." });
+            }
+            if (!await BolaChecker.EsPropietario(HttpContext, resultado.IdPaciente))
+            {
+                return Forbid();
             }
             return Ok(resultado);
         }
