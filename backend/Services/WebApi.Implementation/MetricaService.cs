@@ -8,6 +8,14 @@ namespace WebApi.Implementation
     {
         private readonly string _connectionString;
 
+        private static readonly Dictionary<string, string> TablasPermitidas = new()
+        {
+            ["Paciente"] = "Paciente",
+            ["ProfesionalSalud"] = "ProfesionalSalud",
+            ["Recordatorios"] = "Recordatorios",
+            ["IndicadorSalud"] = "IndicadorSalud",
+        };
+
         public MetricaService(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DatabaseConnection")
@@ -35,8 +43,13 @@ namespace WebApi.Implementation
             }
         }
 
-        private static async Task<int> CountAsync(SqlConnection connection, string tableName)
+        private static async Task<int> CountAsync(SqlConnection connection, string tableKey)
         {
+            if (!TablasPermitidas.TryGetValue(tableKey, out var tableName))
+            {
+                throw new ArgumentException($"Tabla no permitida: {tableKey}", nameof(tableKey));
+            }
+
             using (var cmd = new SqlCommand($"SELECT COUNT(*) FROM {tableName}", connection))
             {
                 var result = await cmd.ExecuteScalarAsync();

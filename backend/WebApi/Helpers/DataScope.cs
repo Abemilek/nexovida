@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using WebApi.Interface;
-using WebApi.Models;
 
 namespace WebApi.Helpers
 {
@@ -21,6 +20,11 @@ namespace WebApi.Helpers
         public static bool EsAdministrador(HttpContext context) =>
             context.User.IsInRole("Administrador");
 
+        private static string ConnectionString(HttpContext context) =>
+            context.RequestServices.GetRequiredService<IConfiguration>()
+                .GetConnectionString("DatabaseConnection")
+                ?? throw new InvalidOperationException("La cadena de conexión no puede ser nula.");
+
         public static async Task<HashSet<int>> ObtenerPacientesPermitidosAsync(HttpContext context)
         {
             var permitidos = new HashSet<int>();
@@ -30,62 +34,75 @@ namespace WebApi.Helpers
                 return permitidos;
             }
 
-            var services = context.RequestServices;
+            var connectionString = ConnectionString(context);
 
             if (context.User.IsInRole("Paciente"))
             {
-                var pacienteService = services.GetRequiredService<IPacienteService>();
-                foreach (var p in await pacienteService.GetAllAsync())
+                using var connection = new SqlConnection(connectionString);
+                await connection.OpenAsync();
+                using var cmd = new SqlCommand(
+                    "SELECT IdPaciente FROM Paciente WHERE IdUsuario = @idUsuario",
+                    connection);
+                cmd.Parameters.AddWithValue("@idUsuario", idUsuario.Value);
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
                 {
-                    if (p.IdUsuario == idUsuario)
-                    {
-                        permitidos.Add(p.IdPaciente);
-                    }
+                    permitidos.Add(reader.GetInt32(0));
                 }
                 return permitidos;
             }
 
             if (context.User.IsInRole("ProfesionalSalud"))
             {
-                 var profesionalService = services.GetRequiredService<IProfesionalSaludService>();
-                 var tratamientoService = services.GetRequiredService<ITratamientoService>();
+                int? idProfesional = null;
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    await connection.OpenAsync();
+                    using var cmd = new SqlCommand(
+                        "SELECT IdProfesional FROM ProfesionalSalud WHERE IdUsuario = @idUsuario AND Activo = 1",
+                        connection);
+                    cmd.Parameters.AddWithValue("@idUsuario", idUsuario.Value);
+                    var result = await cmd.ExecuteScalarAsync();
+                    if (result != null)
+                    {
+                        idProfesional = Convert.ToInt32(result);
+                    }
+                }
+                if (idProfesional == null)
+                {
+                    return permitidos;
+                }
 
-                 int? idProfesional = null;
-                 foreach (var p in await profesionalService.GetAllAsync())
-                 {
-                     if (p.IdUsuario == idUsuario && p.Activo != false)
-                     {
-                         idProfesional = p.IdProfesional;
-                         break;
-                     }
-                 }
-                 if (idProfesional == null)
-                 {
-                     return permitidos;
-                 }
-
-                 foreach (var t in await tratamientoService.GetAllAsync())
-                 {
-                     if (t.IdProfesional == idProfesional.Value)
-                     {
-                         permitidos.Add(t.IdPaciente);
-                     }
-                 }
-                 return permitidos;
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    await connection.OpenAsync();
+                    using var cmd = new SqlCommand(
+                        "SELECT DISTINCT IdPaciente FROM Tratamiento WHERE IdProfesional = @idProfesional",
+                        connection);
+                    cmd.Parameters.AddWithValue("@idProfesional", idProfesional.Value);
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                    {
+                        permitidos.Add(reader.GetInt32(0));
+                    }
+                }
+                return permitidos;
             }
 
             if (context.User.IsInRole("Familiar"))
             {
-                var familiarService = services.GetRequiredService<IFamiliarService>();
-                var asistenteService = services.GetRequiredService<IAsistentePacienteService>();
-
                 int? idFamiliar = null;
-                foreach (var f in await familiarService.GetAllAsync())
+                using (var connection = new SqlConnection(connectionString))
                 {
-                    if (f.IdUsuario == idUsuario)
+                    await connection.OpenAsync();
+                    using var cmd = new SqlCommand(
+                        "SELECT IdFamiliar FROM Familiares WHERE IdUsuario = @idUsuario",
+                        connection);
+                    cmd.Parameters.AddWithValue("@idUsuario", idUsuario.Value);
+                    var result = await cmd.ExecuteScalarAsync();
+                    if (result != null)
                     {
-                        idFamiliar = f.IdFamiliar;
-                        break;
+                        idFamiliar = Convert.ToInt32(result);
                     }
                 }
                 if (idFamiliar == null)
@@ -93,11 +110,17 @@ namespace WebApi.Helpers
                     return permitidos;
                 }
 
-                foreach (var a in await asistenteService.GetAllAsync())
+                using (var connection = new SqlConnection(connectionString))
                 {
-                    if (a.IdFamiliar == idFamiliar.Value && a.Activo != false)
+                    await connection.OpenAsync();
+                    using var cmd = new SqlCommand(
+                        "SELECT IdPaciente FROM AsistentePaciente WHERE IdFamiliar = @idFamiliar AND Activo = 1",
+                        connection);
+                    cmd.Parameters.AddWithValue("@idFamiliar", idFamiliar.Value);
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
                     {
-                        permitidos.Add(a.IdPaciente);
+                        permitidos.Add(reader.GetInt32(0));
                     }
                 }
                 return permitidos;
