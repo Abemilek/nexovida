@@ -183,7 +183,14 @@ class AppSession extends ChangeNotifier {
           patientId: parsedRole == UserRole.paciente ? userId : 1,
           userId: userId,
         );
-      } catch (_) {}
+      } catch (e, stackTrace) {
+        assert(() {
+          debugPrint(
+            'AppSession: fallo al parsear el rol desde el JWT: $e\n$stackTrace',
+          );
+          return true;
+        }());
+      }
     }
     return _userFromEmail(email);
   }
